@@ -23,6 +23,9 @@ class BasePage:
     def get_text(self, locator):
         return self.element_is_visible(locator).text
 
+    def click_to_element(self, locator):
+        self.element_is_clickable(locator).click()
+
     def element_is_visible(self, locator, timeout=timeout):
         return wait(self.browser, timeout).until(EC.visibility_of_element_located(locator))
 

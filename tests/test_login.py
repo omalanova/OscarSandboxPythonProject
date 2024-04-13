@@ -8,6 +8,7 @@ class TestLogin:
     main_locators = MainLocators()
 
     def test_login(self, browser):
+
         page = LoginPage(browser, self.url.base_url)
         page.open()
         page.login()
