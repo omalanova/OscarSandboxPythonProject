@@ -1,33 +1,41 @@
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
+
 from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.support import expected_conditions as EC
 
-from locators.login_locators import LoginLocators
-from src.user_data import UserData
-class BasePage:
-    timeout = 10
-    locators = LoginLocators()
-    user = UserData()
+from locators import BasePageLocators
 
-    def __init__(self, browser, url):
+
+class BasePage(object):
+
+    def __init__(self, browser, url, timeout=10):
         self.browser = browser
         self.url = url
-
-    def login(self):
-        self.element_is_visible(self.locators.USER_NAME).send_keys(self.user.user)
-        self.element_is_visible(self.locators.PASSWORD).send_keys(self.user.password)
-        self.element_is_clickable(self.locators.LOGIN).click()
+        self.browser.implicitly_wait(timeout)
 
     def open(self):
         self.browser.get(self.url)
 
-    def get_text(self, locator):
-        return self.element_is_visible(locator).text
+    def go_to_login_page(self):
+        link = self.browser.find_element(*BasePageLocators.LOGIN_LINK)
+        link.click()
 
-    def click_to_element(self, locator):
-        self.element_is_clickable(locator).click()
+    def should_be_login_link(self):
+        assert self.is_element_present(*BasePageLocators.LOGIN_LINK), "Login link is not presented"
 
-    def element_is_visible(self, locator, timeout=timeout):
-        return wait(self.browser, timeout).until(EC.visibility_of_element_located(locator))
+    def is_element_present(self, how, what):
+        try:
+            self.browser.find_element(how, what)
+        except NoSuchElementException:
+            return False
+        return True
 
-    def element_is_clickable(self, locator, timeout=timeout):
-        return wait(self.browser, timeout).until(EC.element_to_be_clickable(locator))
+    def is_not_element_present(self, how, what, timeout=4):
+        # проверка, что элемент не появляется на странице в течение заданного времени
+        try:
+            wait(self.browser, timeout).until(EC.presence_of_element_located((how, what)))
+        except TimeoutException:
+            return True
+
+        return False
